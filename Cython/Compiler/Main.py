@@ -219,6 +219,61 @@ class Context(object):
             ExtractPxdCode(self),
             ]
 
+    def create_pyx_python_backend_pipeline(self, scope, module_name):
+        def generate_python_code(module_node):
+            print "Hello World"
+            module_node.process_python_implementation()
+            result.compilation_source = module_node.compilation_source
+            return result
+
+        from Visitor import PrintTree
+        from ParseTreeTransforms import WithTransform, NormalizeTree, PostParse, PxdPostParse
+        from ParseTreeTransforms import AnalyseDeclarationsTransform, AnalyseExpressionsTransform
+        from ParseTreeTransforms import CreateClosureClasses, MarkClosureVisitor, DecoratorTransform
+        from ParseTreeTransforms import InterpretCompilerDirectives, TransformBuiltinMethods
+        from ParseTreeTransforms import ExpandInplaceOperators
+        from TypeInference import MarkAssignments, MarkOverflowingArithmetic
+        from ParseTreeTransforms import AlignFunctionDefinitions, GilCheck
+        from AnalysedTreeTransforms import AutoTestDictTransform
+        from AutoDocTransforms import EmbedSignature
+        from Optimize import FlattenInListTransform, SwitchTransform, IterationTransform
+        from Optimize import EarlyReplaceBuiltinCalls, OptimizeBuiltinCalls
+        from Optimize import ConstantFolding, FinalOptimizePhase
+        from Optimize import DropRefcountingTransform
+        from Buffer import IntroduceBufferAuxiliaryVars
+        from ModuleNode import check_c_declarations, check_c_declarations_pxd
+
+        # Check what optimisations are useful for the Cython backend
+        return [
+            create_parse(self),
+            NormalizeTree(self),
+            PostParse(self),
+            InterpretCompilerDirectives(self, self.compiler_directives),
+            MarkClosureVisitor(self),
+            ConstantFolding(),
+            FlattenInListTransform(),
+            WithTransform(self),
+            DecoratorTransform(self),
+            AnalyseDeclarationsTransform(self),
+            AutoTestDictTransform(self),
+            EmbedSignature(self),
+            EarlyReplaceBuiltinCalls(self),  ## Necessary?
+            MarkAssignments(self),
+            MarkOverflowingArithmetic(self),
+            TransformBuiltinMethods(self),  ## Necessary?
+            IntroduceBufferAuxiliaryVars(self),
+            AnalyseExpressionsTransform(self),
+            CreateClosureClasses(self),  ## After all lookups and type inference
+            ExpandInplaceOperators(self),
+            OptimizeBuiltinCalls(self),  ## Necessary?
+            IterationTransform(),
+            SwitchTransform(),
+            DropRefcountingTransform(),
+            FinalOptimizePhase(self),
+            generate_python_code,
+            ]
+
+
     def create_py_pipeline(self, options, result):
         return self.create_pyx_pipeline(options, result, py=True)
 
@@ -616,7 +671,9 @@ def run_pipeline(source, options, full_module_name = None):
                 options.annotate = True
 
     # Get pipeline
-    if source_ext.lower() == '.py':
+    if options.python_output:
+        pipeline = context.create_pyx_python_backend_pipeline(options, result)
+    elif source_ext.lower() == '.py':
         pipeline = context.create_py_pipeline(options, result)
     else:
         pipeline = context.create_pyx_pipeline(options, result)
