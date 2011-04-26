@@ -1444,6 +1444,20 @@ class CCodeWriter(object):
     def put_trace_return(self, retvalue_cname):
         self.putln("__Pyx_TraceReturn(%s);" % retvalue_cname)
 
+class PyCodeWriter(object):
+    def __init__(self, file):
+        self.level = 0
+        self.file = file
+
+    def indent(self):
+        self.level += 1
+
+    def dedent(self):
+        self.level += 1
+
+    def putln(self, str):
+        self.file.write(level * "    ")
+        self.file.write(str)
 
 class PyrexCodeWriter(object):
     # f                file      output file
