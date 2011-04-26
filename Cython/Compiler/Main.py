@@ -219,10 +219,9 @@ class Context(object):
             ExtractPxdCode(self),
             ]
 
-    def create_pyx_python_backend_pipeline(self, scope, module_name):
+    def create_pyx_python_backend_pipeline(self, options, result):
         def generate_python_code(module_node):
-            print "Hello World"
-            module_node.process_python_implementation()
+            module_node.process_python_implementation(options, result)
             result.compilation_source = module_node.compilation_source
             return result
 

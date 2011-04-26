@@ -74,6 +74,10 @@ class ModuleNode(Nodes.Node, Nodes.BlockNode):
         self.generate_h_code(env, options, result)
         self.generate_api_code(env, result)
 
+    def process_python_implementation(self, options, result):
+        """ Produces the code for the Python backend"""
+        env = self.scope
+
     def has_imported_c_functions(self):
         for module in self.referenced_modules:
             for entry in module.cfunc_entries:
