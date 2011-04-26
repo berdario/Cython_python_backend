@@ -634,10 +634,12 @@ def create_default_resultobj(compilation_source, options):
         result.c_file = os.path.join(compilation_source.cwd, options.output_file)
     else:
         if options.cplus:
-            c_suffix = ".cpp"
+            suffix = ".cpp"
+        elif options.python_output:
+            suffix = ".py"
         else:
-            c_suffix = ".c"
-        result.c_file = Utils.replace_suffix(source_desc.filename, c_suffix)
+            suffix = ".c"
+        result.out_file = result.c_file = Utils.replace_suffix(source_desc.filename, suffix)
     return result
 
 def run_pipeline(source, options, full_module_name = None):

@@ -77,6 +77,7 @@ class ModuleNode(Nodes.Node, Nodes.BlockNode):
     def process_python_implementation(self, options, result):
         """ Produces the code for the Python backend"""
         env = self.scope
+        self.generate_python_code(env, options, result)
 
     def has_imported_c_functions(self):
         for module in self.referenced_modules:
@@ -332,6 +333,10 @@ class ModuleNode(Nodes.Node, Nodes.BlockNode):
         if Options.annotate or options.annotate:
             self.annotate(rootwriter)
             rootwriter.save_annotation(result.main_source_file, result.c_file)
+
+    def generate_python_code(self, env, options, result):
+        print result.main_source_file
+        print result.c_file
 
     def _serialize_lineno_map(self, env, ccodewriter):
         tb = env.context.gdb_debug_outputwriter

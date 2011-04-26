@@ -170,6 +170,9 @@ def parse_command_line(args):
             if arg.endswith(".pyx"):
                 sources.append(arg)
             elif arg.endswith(".py"):
+                if options.python_output:
+                    sys.stderr.write(
+                        "cython: %s: illegal filename suffix for this backend\n" % arg)
                 # maybe do some other stuff, but this should work for now
                 sources.append(arg)
             else:
