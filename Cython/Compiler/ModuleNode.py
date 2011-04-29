@@ -337,6 +337,12 @@ class ModuleNode(Nodes.Node, Nodes.BlockNode):
     def generate_python_code(self, env, options, result):
         print result.main_source_file
         print result.c_file
+        
+        codewriter = Code.PyCodeWriter()
+        
+        with open_new_file(result.c_file) as f:
+            codewriter.copyto(f)
+        
 
     def _serialize_lineno_map(self, env, ccodewriter):
         tb = env.context.gdb_debug_outputwriter
