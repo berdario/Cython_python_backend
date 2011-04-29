@@ -77,6 +77,9 @@ cdef class StringConst:
 
 #class CCodeWriter(object):
 
+cdef class PyCodeWriter:
+    cdef public Py_ssize_t level
+
 cdef class PyrexCodeWriter:
     cdef public object f
     cdef public Py_ssize_t level
