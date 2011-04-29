@@ -340,6 +340,8 @@ class ModuleNode(Nodes.Node, Nodes.BlockNode):
         
         codewriter = Code.PyCodeWriter()
         
+        codewriter.putln("test")
+        
         with open_new_file(result.c_file) as f:
             codewriter.copyto(f)
         

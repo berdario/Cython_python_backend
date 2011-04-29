@@ -88,6 +88,7 @@ class DeclarationWriter(TreeVisitor):
         if node.include_file is None:
             file = u'*'
         else:
+            #XXX add here the ctypes argtypes and restype declaration
             file = u'"%s"' % node.include_file
         self.putline(u"cdef extern from %s:" % file)
         self.indent()

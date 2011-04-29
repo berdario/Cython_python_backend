@@ -1456,7 +1456,7 @@ class PyCodeWriter(object):
         self.level += 1
 
     def putln(self, str):
-        self.buffer.write(level * "    ")
+        self.buffer.write(self.level * "    ")
         self.buffer.write(str + "\n")
     
     def copyto(self, f): # f is a file
