@@ -1445,7 +1445,7 @@ class CCodeWriter(object):
         self.putln("__Pyx_TraceReturn(%s);" % retvalue_cname)
 
 class PyCodeWriter(object):
-    def __init__(self):
+    def __init__(self, file):
         self.level = 0
         self.buffer = StringIOTree()
 
