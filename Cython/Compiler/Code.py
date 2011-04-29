@@ -1447,7 +1447,7 @@ class CCodeWriter(object):
 class PyCodeWriter(object):
     def __init__(self):
         self.level = 0
-        self.buffer = buffer
+        self.buffer = StringIOTree()
 
     def indent(self):
         self.level += 1
@@ -1459,7 +1459,7 @@ class PyCodeWriter(object):
         self.buffer.write(level * "    ")
         self.buffer.write(str + "\n")
     
-    def copyto(f): # f is a file
+    def copyto(self, f): # f is a file
         self.buffer.copyto(f)
 
 
