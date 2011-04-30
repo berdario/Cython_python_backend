@@ -1731,7 +1731,7 @@ def p_IF_statement(s, ctx):
     s.compile_time_eval = saved_eval
     return result
 
-def p_statement(s, ctx, first_statement = 0):
+def p_statement(s, ctx, first_statement=0, store_code=store_code):
     cdef_flag = ctx.cdef_flag
     decorators = None
     if s.sy == 'ctypedef':
@@ -1741,14 +1741,14 @@ def p_statement(s, ctx, first_statement = 0):
         #    error(s.position(), "'api' not allowed with 'ctypedef'")
         return p_ctypedef_statement(s, ctx)
     elif s.sy == 'DEF':
-        return p_DEF_statement(s)
+        return p_DEF_statement(s, store_code=store_code)
     elif s.sy == 'IF':
-        return p_IF_statement(s, ctx)
+        return p_IF_statement(s, ctx, store_code=store_code)
     elif s.sy == 'DECORATOR':
         if ctx.level not in ('module', 'class', 'c_class', 'function', 'property', 'module_pxd', 'c_class_pxd'):
             s.error('decorator not allowed here')
         s.level = ctx.level
-        decorators = p_decorators(s)
+        decorators = p_decorators(s, store_code=store_code)
         if s.sy not in ('def', 'cdef', 'cpdef', 'class'):
             s.error("Decorators can only be followed by functions or classes")
     elif s.sy == 'pass' and cdef_flag:
@@ -1782,19 +1782,19 @@ def p_statement(s, ctx, first_statement = 0):
             if ('pxd' in ctx.level) and (ctx.level != 'c_class_pxd'):
                 s.error('def statement not allowed here')
             s.level = ctx.level
-            return p_def_statement(s, decorators)
+            return p_def_statement(s, decorators, store_code=store_code)
         elif s.sy == 'class':
             if ctx.level not in ('module', 'function', 'class', 'other'):
                 s.error("class definition not allowed here")
-            return p_class_statement(s, decorators)
+            return p_class_statement(s, decorators, store_code=store_code)
         elif s.sy == 'include':
             if ctx.level not in ('module', 'module_pxd'):
                 s.error("include statement not allowed here")
             return p_include_statement(s, ctx)
         elif ctx.level == 'c_class' and s.sy == 'IDENT' and s.systring == 'property':
-            return p_property_decl(s)
+            return p_property_decl(s, store_code=store_code)
         elif s.sy == 'pass' and ctx.level != 'property':
-            return p_pass_statement(s, with_newline = 1)
+            return p_pass_statement(s, with_newline = 1, store_code=store_code)
         else:
             if ctx.level in ('c_class_pxd', 'property'):
                 s.error("Executable statement not allowed here")
@@ -1812,18 +1812,18 @@ def p_statement(s, ctx, first_statement = 0):
                 return p_simple_statement_list(
                     s, ctx, first_statement = first_statement)
 
-def p_statement_list(s, ctx, first_statement = 0):
+def p_statement_list(s, ctx, first_statement=0, store_code=False):
     # Parse a series of statements separated by newlines.
     pos = s.position()
     stats = []
     while s.sy not in ('DEDENT', 'EOF'):
-        stat = p_statement(s, ctx, first_statement = first_statement)
+        stat = p_statement(s, ctx, first_statement=first_statement, store_code=store_code)
         if isinstance(stat, Nodes.PassStatNode):
             continue
         stats.append(stat)
         first_statement = False
     if not stats:
-        return Nodes.PassStatNode(pos)
+        return Nodes.PassStatNode(pos, store_code=store_code)
     elif len(stats) == 1:
         return stats[0]
     else:
@@ -2849,7 +2849,7 @@ def p_compiler_directive_comments(s):
         s.next()
     return result
 
-def p_module(s, pxd, full_module_name):
+def p_module(s, pxd, full_module_name, store_code=False):
     pos = s.position()
 
     directive_comments = p_compiler_directive_comments(s)
@@ -2864,7 +2864,7 @@ def p_module(s, pxd, full_module_name):
     else:
         level = 'module'
 
-    body = p_statement_list(s, Ctx(level = level), first_statement = 1)
+    body = p_statement_list(s, Ctx(level=level), first_statement=1, store_code=store_code)
     if s.sy != 'EOF':
         s.error("Syntax error in statement [%s,%s]" % (
             repr(s.sy), repr(s.systring)))

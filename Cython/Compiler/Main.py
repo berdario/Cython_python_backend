@@ -242,6 +242,8 @@ class Context(object):
         from Buffer import IntroduceBufferAuxiliaryVars
         from ModuleNode import check_c_declarations, check_c_declarations_pxd
 
+        options.store_parsed_python_code = True
+        
         # Check what optimisations are useful for the Cython backend
         return [
             create_parse(self),
@@ -555,9 +557,10 @@ class Context(object):
             f = Utils.open_source_file(source_filename, "rU")
             try:
                 import Parsing
-                s = PyrexScanner(f, source_desc, source_encoding = f.encoding,
-                                 scope = scope, context = self)
-                tree = Parsing.p_module(s, pxd, full_module_name)
+                s = PyrexScanner(f, source_desc, source_encoding=f.encoding,
+                                 scope=scope, context=self)
+                tree = Parsing.p_module(s, pxd, full_module_name,
+                                        store_code=options.store_parsed_python_code)
             finally:
                 f.close()
         except UnicodeDecodeError, msg:
@@ -906,4 +909,5 @@ default_options = dict(
     c_line_in_traceback = True,
     language_level = 2,
     gdb_debug = False,
+    store_parsed_python_code = False,
 )
