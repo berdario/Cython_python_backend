@@ -65,6 +65,8 @@ embed = None
 # module creation time. For legacy code only, needed for some circular imports.
 disable_function_redefinition = False
 
+# Store the original source code in the Node objects got after the parsing 
+store_code = False
 
 # Declare compiler directives
 directive_defaults = {

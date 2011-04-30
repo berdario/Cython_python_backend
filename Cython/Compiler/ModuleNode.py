@@ -337,10 +337,11 @@ class ModuleNode(Nodes.Node, Nodes.BlockNode):
     def generate_python_code(self, env, options, result):
         print result.main_source_file
         print result.c_file
-        import pdb; pdb.set_trace()
         codewriter = Code.PyCodeWriter()
         
-        codewriter.putln("test")
+        from Cython.CodeWriter import PythonWriter
+        writer = PythonWriter(codewriter)
+        writer(self)
         
         with open_new_file(result.c_file) as f:
             codewriter.copyto(f)

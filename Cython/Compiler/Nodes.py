@@ -379,10 +379,6 @@ class StatNode(Node):
     #        Emit C code for executable statements.
     #
 
-    def __init__(self, pos, store_code=False, **kwargs):
-        Node.__init__(pos, **kwargs)
-        self.store_code = store_code
-
     def generate_function_definitions(self, env, code):
         pass
 

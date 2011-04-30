@@ -511,4 +511,16 @@ class PxdWriter(DeclarationWriter):
     def visit_StatNode(self, node):
         pass
 
+class PythonWriter(TreeVisitor):
     
+    def __init__(self, codewriter):
+        TreeVisitor.__init__(self)
+        self.out = codewriter
+    
+    def __call__(self, node):
+        self._visit(node)
+    
+    def visit_ModuleNode(self, node):
+        #import pdb; pdb.set_trace()
+        self.out.putln("test")
+        #self.visitchildren(node)
