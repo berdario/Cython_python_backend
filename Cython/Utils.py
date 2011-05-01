@@ -9,7 +9,7 @@ def replace_suffix(path, newsuf):
     base, _ = os.path.splitext(path)
     return base + newsuf
 
-def open_new_file(path):
+def open_new_file(path, encoding="ISO-8859-1", errors='strict'):
     if os.path.exists(path):
         # Make sure to create a new file here so we can
         # safely hard link the output files.
@@ -19,7 +19,7 @@ def open_new_file(path):
     # ASCII strings or (e.g. for file names) byte encoded strings as
     # Unicode, so we need a direct mapping from the first 256 Unicode
     # characters to a byte sequence, which ISO-8859-1 provides
-    return codecs.open(path, "w", encoding="ISO-8859-1")
+    return codecs.open(path, "w", encoding=encoding, errors=errors)
 
 def castrate_file(path, st):
     #  Remove junk contents from an output file after a

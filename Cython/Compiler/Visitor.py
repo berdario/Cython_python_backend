@@ -118,12 +118,13 @@ class TreeVisitor(object):
             node = getattr(parent, attribute)
             if index is None:
                 index = ''
-            else:
+            elif node:
                 node = node[index]
                 index = u'[%d]' % index
-            trace.append(u'%s.%s%s = %s' % (
-                parent.__class__.__name__, attribute, index,
-                self.dump_node(node)))
+            if node:
+                trace.append(u'%s.%s%s = %s' % (
+                    parent.__class__.__name__, attribute, index,
+                    self.dump_node(node)))
         stacktrace, called_nodes = self._find_node_path(sys.exc_info()[2])
         last_node = child
         for node, method_name, pos in called_nodes:
@@ -149,7 +150,7 @@ class TreeVisitor(object):
             print self.access_path
             print self.access_path[-1][0].pos
             print self.access_path[-1][0].__dict__
-        raise RuntimeError("Visitor %r does not accept object: %s" % (self, obj))
+        raise MissingVisit("Visitor %r does not accept object: %s" % (self, obj))
 
     def visit(self, obj):
         return self._visit(obj)
@@ -171,9 +172,9 @@ class TreeVisitor(object):
                 handler_method = self.find_handler(child)
                 self.dispatch_table[type(child)] = handler_method
             result = handler_method(child)
-        except Errors.CompileError:
+        except Errors.CompileError, Errors.AbortError:
             raise
-        except Errors.AbortError:
+        except MissingVisit:
             raise
         except Exception, e:
             if DebugFlags.debug_no_exception_intercept:
@@ -428,6 +429,9 @@ class PrintTree(TreeVisitor):
                 result += "(pos=(%s:%s:%s))" % (path, pos[1], pos[2])
 
             return result
+            
+class MissingVisit(RuntimeError):
+    pass
 
 if __name__ == "__main__":
     import doctest

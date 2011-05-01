@@ -265,6 +265,12 @@ class Node(object):
                 res += "%s  %s: %s\n" % (indent, key, dump_child(value, level + 1))
             res += "%s>" % indent
             return res
+    
+    def get_code_string(self, until=None):
+        lines = self.pos[0].get_lines(encoding="ISO-8859-1")
+        for i in range(self.pos[1]):
+            line = lines.readline()
+        return line[:until]
 
 class CompilerDirectivesNode(Node):
     """

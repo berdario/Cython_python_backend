@@ -88,7 +88,6 @@ class DeclarationWriter(TreeVisitor):
         if node.include_file is None:
             file = u'*'
         else:
-            #XXX add here the ctypes argtypes and restype declaration
             file = u'"%s"' % node.include_file
         self.putline(u"cdef extern from %s:" % file)
         self.indent()
@@ -513,14 +512,72 @@ class PxdWriter(DeclarationWriter):
 
 class PythonWriter(TreeVisitor):
     
+    cdefs_types = [Nodes.CAnalysedBaseTypeNode, Nodes.CArgDeclNode, Nodes.CArrayDeclaratorNode,
+        Nodes.CBaseTypeNode, Nodes.CClassDefNode, Nodes.CClassScope, Nodes.CCodeWriter,
+        Nodes.CComplexBaseTypeNode, Nodes.CDeclaratorNode, Nodes.CDefExternNode,
+        Nodes.CEnumDefItemNode, Nodes.CEnumDefNode, Nodes.CFuncDeclaratorNode, Nodes.CFuncDefNode,
+        Nodes.CFuncType, Nodes.CImportStatNode, Nodes.CNameDeclaratorNode,
+        Nodes.CNestedBaseTypeNode, Nodes.CPtrDeclaratorNode, Nodes.CReferenceDeclaratorNode,
+        Nodes.CSimpleBaseTypeNode, Nodes.CStructOrUnionDefNode, Nodes.CTypeDefNode,
+        Nodes.CVarDefNode, Nodes.CppClassNode, Nodes.CppClassScope, Nodes.TemplatedTypeNode]
+    
     def __init__(self, codewriter):
         TreeVisitor.__init__(self)
         self.out = codewriter
+        self.last_line = -1
+    
+    def visitchildren(self, parent, attrs=None, next=None):
+        if parent is None: return None
+        result = {}
+        for attr in parent.child_attrs:
+            if attrs is not None and attr not in attrs: continue
+            child = getattr(parent, attr)
+            if child is not None and child:
+                if type(child) is list:
+                    first = child.pop(0)
+                    childretval = []
+                    idx = 0
+                    for idx, second in enumerate(child):
+                        childretval.append(self.visitchild(first, parent, attr, idx, second))
+                        first = second
+                    childretval.append(self.visitchild(first, parent, attr, idx, next))
+                elif child:
+                    childretval = self.visitchild(child, parent, attr, None, next)
+                    assert not isinstance(childretval, list), 'Cannot insert list here: %s in %r' % (attr, parent)
+                result[attr] = childretval
+        return result
+        
+    def visitchild(self, child, parent, attr, idx, next=None):
+        if type(child) not in self.cdefs_types:
+            #if next and next.pos[1] == child.pos[1]:
+            #    stmt_string = child.get_code_string(next.pos[2] - 1)
+            #else:
+            if child.pos[1] > self.last_line:
+                stmt_string = child.get_code_string() + "\n"
+                self.out.put(stmt_string, indent=False)
+                self.last_line = child.pos[1]
+            #self.out.put(stmt_string, indent=False)
+            
+        try:
+            self._visitchild(child, parent, attr, idx)
+        except RuntimeError:
+            self.visitchildren(child, next=next)
     
     def __call__(self, node):
         self._visit(node)
     
     def visit_ModuleNode(self, node):
-        #import pdb; pdb.set_trace()
-        self.out.putln("test")
-        #self.visitchildren(node)
+        self.visitchildren(node)
+        
+    def visit_StatListNode(self, node):
+        self.visitchildren(node)
+        
+    def visit_CDefExternNode(self, node):
+        if node.include_file is None:
+            file = u'*'
+        else:
+            file = u'"%s"' % node.include_file
+        self.out.putln(u"TODO: add ctypes output for a cdef that includes definitions from %s\n" % file)
+        self.out.indent()
+        self.visit(node.body)
+        self.out.dedent()

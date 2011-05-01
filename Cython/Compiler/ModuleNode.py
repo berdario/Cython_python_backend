@@ -343,7 +343,7 @@ class ModuleNode(Nodes.Node, Nodes.BlockNode):
         writer = PythonWriter(codewriter)
         writer(self)
         
-        with open_new_file(result.c_file) as f:
+        with open_new_file(result.c_file, encoding="utf8", errors='backslashreplace') as f:
             codewriter.copyto(f)
 
     def _serialize_lineno_map(self, env, ccodewriter):

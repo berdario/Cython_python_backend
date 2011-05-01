@@ -1447,17 +1447,24 @@ class CCodeWriter(object):
 class PyCodeWriter(object):
     def __init__(self):
         self.level = 0
+        #from io import StringIOTree as StringIO
+        # Cython.StringIOTree doesn't seem to support unicode
         self.buffer = StringIOTree()
 
     def indent(self):
         self.level += 1
 
     def dedent(self):
-        self.level += 1
+        self.level -= 1
 
     def putln(self, str):
-        self.buffer.write(self.level * "    ")
-        self.buffer.write(str + "\n")
+        self.put(str)
+        self.buffer.write("\n")
+        
+    def put(self, str, indent=True):
+        if indent:
+            self.buffer.write(self.level * "    ")
+        self.buffer.write(str)
     
     def copyto(self, f): # f is a file
         self.buffer.copyto(f)
